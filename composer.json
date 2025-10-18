@@ -1,0 +1,11 @@
+{
+    "name": "your-vendor-name/avflash-project",
+    "description": "Custom WordPress-style MVC framework.",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/" 
+        }
+    },
+    "require": {}
+}

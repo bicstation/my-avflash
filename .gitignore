@@ -1,0 +1,4 @@
+# .gitignore の内容例
+/vendor        # Composerの依存関係（巨大なので含めない）
+.env           # 環境変数ファイル（DBパスワードなどの機密情報なので含めない）
+/storage/*.log # ログファイル
