@@ -1,14 +1,14 @@
-// src/app/page.tsx (ローカルPCでこの内容で上書き)
+// src/app/page.tsx (日付フィールド修正版)
 
 // next.config.tsで設定した環境変数を取得
-// Next.jsサーバーは、この完全な外部URLに直接アクセスする
 const API_BASE_URL = process.env.API_BASE_URL;
 
-// APIから取得するデータの型定義（そのまま）
+// APIから取得するデータの型定義（dateをrelease_dateに修正）
 interface Work {
   id: number;
   title: string;
-  date: string;
+  // ★ 修正箇所: date を release_date に変更します ★
+  release_date: string; 
 }
 
 
@@ -30,21 +30,15 @@ async function getLatestWorks(): Promise<Work[]> {
       headers: {
         'Content-Type': 'application/json',
       },
-      // cache: 'no-store' 
       cache: 'no-store' 
     });
 
     if (!response.ok) {
-      // エラーメッセージでレスポンスステータスを表示
       throw new Error(`API fetch failed with status: ${response.status} from ${url}`);
     }
-    
-    // JSONのパースと返却
+
+    // ★ 取得データが {"status":"success", "data": [ ... ]} の形式なので、dataフィールドを取得 ★
     const { data } = await response.json(); 
-    
-    // 取得したデータはPHP APIのJSON形式を想定しています
-    // ここでJSONのトップレベルが "data" フィールドを持つと仮定して修正します
-    // 実際に取得されたJSON: {"status":"success","data":[{"id":...}]}
     return data; 
 
   } catch (error) {
@@ -70,7 +64,8 @@ export default async function HomePage() {
             {latestWorks.map((work) => (
               <li key={work.id} className="p-4 bg-gray-50 border rounded-lg shadow-sm hover:bg-gray-100 transition">
                 <p className="font-medium text-lg">{work.title}</p>
-                <p className="text-sm text-gray-500">公開日: {work.date}</p>
+                {/* ★ 修正箇所: work.date を work.release_date に変更します ★ */}
+                <p className="text-sm text-gray-500">公開日: {work.release_date}</p>
               </li>
             ))}
           </ul>
