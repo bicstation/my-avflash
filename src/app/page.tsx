@@ -1,11 +1,15 @@
-// src/app/page.tsx
+// src/app/page.tsx (ローカルPCでこの内容で上書き)
 
-// next.config.tsで設定した環境変数を取得
-// TypeScriptなので、process.env.API_BASE_URL は string | undefined になる
-const API_BASE_URL = process.env.API_BASE_URL;
+// 実行環境（ビルド中か、サーバー稼働中か）に応じてURLを切り替えるための判定
+// PM2で起動している場合、Next.jsは API_RUNTIME_URL 環境変数を持つ。
+const isServerRunning = process.env.API_RUNTIME_URL !== undefined;
 
-// APIから取得するデータの型定義（TypeScriptの利点）
-// 実際のPHP APIのJSON構造に合わせて調整してください。
+// 使用するAPIのベースURLを決定
+const API_BASE_URL = isServerRunning 
+  ? process.env.API_RUNTIME_URL // PM2で起動中の場合: NGINX経由 (http://127.0.0.1:3000/api)
+  : process.env.API_BUILD_URL; // ビルド中の場合: 外部URLに直接アクセス (https://wp552476.wpx.jp/avflash/api)
+
+// APIから取得するデータの型定義
 interface Work {
   id: number;
   title: string;
@@ -18,11 +22,11 @@ interface Work {
  */
 async function getLatestWorks(): Promise<Work[]> {
   if (!API_BASE_URL) {
-    console.error("API_BASE_URLが設定されていません。next.config.tsを確認してください。");
+    console.error("APIのURLが設定されていません。next.config.tsを確認してください。");
     return [];
   }
 
-  // APIの完全なURL
+  // 決定したAPI_BASE_URLを使って完全なURLを構築
   const url = `${API_BASE_URL}/works/latest`; 
   
   try {
@@ -31,7 +35,7 @@ async function getLatestWorks(): Promise<Work[]> {
       headers: {
         'Content-Type': 'application/json',
       },
-      // データを常に最新にする (サーバーコンポーネントでは必須ではありませんが、確実なデータ取得のために設定)
+      // cache: 'no-store' を設定することで、毎回最新のデータを取得しようとします
       cache: 'no-store' 
     });
 
@@ -64,6 +68,7 @@ export default async function HomePage() {
           <ul className="space-y-3">
             {latestWorks.map((work) => (
               <li key={work.id} className="p-4 bg-gray-50 border rounded-lg shadow-sm hover:bg-gray-100 transition">
+                {/* 実際にPHP APIから返されるJSONのキー名を使用 */}
                 <p className="font-medium text-lg">{work.title}</p>
                 <p className="text-sm text-gray-500">公開日: {work.date}</p>
               </li>
